@@ -288,7 +288,7 @@ def login_page():
     st.markdown("""
     <div class="hero">
         <h1>EnglishHub LMS</h1>
-        <p>Nền tảng học tiếng Anh dành cho lớp học của bạn.</p>
+        <p>Nền tảng học tiếng Anh dành cho lớp học của Tom và các bạn.</p>
     </div>
     """, unsafe_allow_html=True)
 
