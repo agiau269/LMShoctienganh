@@ -561,7 +561,7 @@ def login_page():
     st.title("EnglishHub LMS")
 
     st.write(
-        "Nền tảng học tiếng Anh dành cho lớp học."
+        "Nền tảng học tiếng Anh dành cho lớp học của Tom và các bạn."
     )
 
     st.divider()
