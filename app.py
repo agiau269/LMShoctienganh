@@ -557,15 +557,67 @@ def student_progress(student_id):
 
 def login_page():
 
-    st.title("EnglishHub LMS")
+   st.markdown("""
+<style>
 
-    st.write(
-        "Nền tảng học tiếng Anh dành cho lớp học của Tom và các bạn."
-    )
+.login-box {
+    background: linear-gradient(135deg, #ffffff 0%, #eef6ff 100%);
+    padding: 35px;
+    border-radius: 20px;
+    border: 1px solid #dbeafe;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+}
 
-    st.divider()
+.login-title {
+    font-size: 42px;
+    font-weight: 800;
+    color: #2563eb;
+    margin-bottom: 5px;
+}
 
-    left, right = st.columns(2)
+.login-subtitle {
+    font-size: 17px;
+    color: #64748b;
+    margin-bottom: 5px;
+}
+
+.login-description {
+    font-size: 14px;
+    color: #94a3b8;
+}
+
+.section-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 15px;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
+<div class="login-box">
+
+    <div class="login-title">
+        EnglishHub LMS
+    </div>
+
+    <div class="login-subtitle">
+        Nền tảng học tiếng Anh dành cho lớp học
+    </div>
+
+    <div class="login-description">
+        Học tập • Bài giảng • Bài tập • Theo dõi tiến độ
+    </div>
+
+</div>
+""", unsafe_allow_html=True)
+
+
+left, right = st.columns(2)
 
     # --------------------------------------------------------
     # LOGIN
