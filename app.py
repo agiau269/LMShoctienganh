@@ -643,7 +643,7 @@ def login_page():
     )
 
     st.markdown(
-        '<div class="subtitle">Nền tảng học tiếng Anh dành cho lớp học</div>',
+        '<div class="subtitle">Nền tảng học tiếng Anh dành cho lớp học của Tom và các bạn</div>',
         unsafe_allow_html=True
     )
 
