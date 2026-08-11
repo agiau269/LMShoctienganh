@@ -1,4 +1,4 @@
-```python
+
 import streamlit as st
 import sqlite3
 import hashlib
@@ -2101,4 +2101,4 @@ else:
         elif page == "Tiến độ học tập":
 
             student_progress()
-```
+
