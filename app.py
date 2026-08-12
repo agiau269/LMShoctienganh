@@ -1058,7 +1058,9 @@ def teacher_classes():
 
 
 # ============================================================
+
 # TEACHER LESSONS
+
 # ============================================================
 
 def teacher_lessons():
@@ -1116,9 +1118,26 @@ def teacher_lessons():
 
             if lesson["video_path"]:
 
-                st.video(
+                video_file = Path(
                     lesson["video_path"]
                 )
+
+                if video_file.exists():
+
+                    with open(
+                        video_file,
+                        "rb"
+                    ) as file:
+
+                        st.video(
+                            file.read()
+                        )
+
+                else:
+
+                    st.warning(
+                        "Không tìm thấy file video."
+                    )
 
                 st.caption(
                     "Video: "
@@ -1143,6 +1162,303 @@ def teacher_lessons():
                         "Mở tài liệu bên ngoài",
                         lesson["resource_url"]
                     )
+
+            st.divider()
+
+            edit_col, delete_col = st.columns(2)
+
+            # ====================================================
+            # EDIT LESSON
+            # ====================================================
+
+            with edit_col:
+
+                with st.expander(
+                    "Chỉnh sửa bài giảng"
+                ):
+
+                    with st.form(
+                        f"edit_lesson_{lesson['id']}"
+                    ):
+
+                        new_title = st.text_input(
+                            "Tên bài giảng",
+                            value=lesson["title"],
+                            key=f"title_{lesson['id']}"
+                        )
+
+                        new_description = st.text_area(
+                            "Mô tả ngắn",
+                            value=lesson["description"] or "",
+                            key=f"description_{lesson['id']}"
+                        )
+
+                        col1, col2 = st.columns(2)
+
+                        with col1:
+
+                            levels = [
+                                "A1",
+                                "A2",
+                                "B1",
+                                "B2",
+                                "C1",
+                                "C2"
+                            ]
+
+                            current_level = (
+                                lesson["level"]
+                                if lesson["level"] in levels
+                                else "A1"
+                            )
+
+                            new_level = st.selectbox(
+                                "Trình độ CEFR",
+                                levels,
+                                index=levels.index(
+                                    current_level
+                                ),
+                                key=f"level_{lesson['id']}"
+                            )
+
+                        with col2:
+
+                            categories = [
+                                "Ngữ pháp",
+                                "Từ vựng",
+                                "Đọc",
+                                "Nghe",
+                                "Nói",
+                                "Viết",
+                                "Luyện thi",
+                                "Tiếng Anh tổng quát"
+                            ]
+
+                            current_category = (
+                                lesson["category"]
+                                if lesson["category"] in categories
+                                else "Ngữ pháp"
+                            )
+
+                            new_category = st.selectbox(
+                                "Chủ đề",
+                                categories,
+                                index=categories.index(
+                                    current_category
+                                ),
+                                key=f"category_{lesson['id']}"
+                            )
+
+                        new_content = st.text_area(
+                            "Nội dung bài giảng",
+                            value=lesson["content"] or "",
+                            height=350,
+                            key=f"content_{lesson['id']}"
+                        )
+
+                        new_resource_url = st.text_input(
+                            "Đường dẫn tài liệu bên ngoài",
+                            value=lesson["resource_url"] or "",
+                            key=f"url_{lesson['id']}"
+                        )
+
+                        new_video = st.file_uploader(
+                            "Thay video mới (không bắt buộc)",
+                            type=[
+                                "mp4",
+                                "mov",
+                                "webm",
+                                "m4v"
+                            ],
+                            key=f"video_{lesson['id']}"
+                        )
+
+                        update_lesson = st.form_submit_button(
+                            "Lưu thay đổi",
+                            use_container_width=True
+                        )
+
+                    if update_lesson:
+
+                        if not new_title.strip():
+
+                            st.error(
+                                "Tên bài giảng không được để trống."
+                            )
+
+                        else:
+
+                            video_path = lesson["video_path"]
+                            video_name = lesson["video_name"]
+
+                            # Nếu giáo viên upload video mới
+                            if new_video:
+
+                                # Xóa video cũ nếu có
+                                if video_path:
+
+                                    old_video = Path(
+                                        video_path
+                                    )
+
+                                    if old_video.exists():
+
+                                        try:
+
+                                            old_video.unlink()
+
+                                        except Exception:
+
+                                            pass
+
+                                extension = Path(
+                                    new_video.name
+                                ).suffix.lower()
+
+                                unique_name = (
+                                    str(uuid.uuid4())
+                                    +
+                                    extension
+                                )
+
+                                save_path = (
+                                    VIDEO_DIR
+                                    /
+                                    unique_name
+                                )
+
+                                with open(
+                                    save_path,
+                                    "wb"
+                                ) as file:
+
+                                    file.write(
+                                        new_video.getbuffer()
+                                    )
+
+                                video_path = str(
+                                    save_path
+                                )
+
+                                video_name = (
+                                    new_video.name
+                                )
+
+                            execute(
+                                """
+                                UPDATE lessons
+                                SET
+                                    title=?,
+                                    description=?,
+                                    level=?,
+                                    category=?,
+                                    content=?,
+                                    resource_url=?,
+                                    video_path=?,
+                                    video_name=?
+                                WHERE id=?
+                                AND teacher_id=?
+                                """,
+                                (
+                                    new_title.strip(),
+                                    new_description.strip(),
+                                    new_level,
+                                    new_category,
+                                    new_content,
+                                    new_resource_url.strip(),
+                                    video_path,
+                                    video_name,
+                                    lesson["id"],
+                                    teacher_id
+                                )
+                            )
+
+                            st.success(
+                                "Đã cập nhật bài giảng thành công."
+                            )
+
+                            st.rerun()
+
+            # ====================================================
+            # DELETE LESSON
+            # ====================================================
+
+            with delete_col:
+
+                with st.expander(
+                    "Xóa bài giảng"
+                ):
+
+                    st.warning(
+                        "Thao tác này không thể hoàn tác."
+                    )
+
+                    confirm_delete = st.checkbox(
+                        "Tôi xác nhận muốn xóa bài giảng này",
+                        key=f"confirm_delete_{lesson['id']}"
+                    )
+
+                    if st.button(
+                        "Xóa bài giảng vĩnh viễn",
+                        key=f"delete_lesson_{lesson['id']}",
+                        use_container_width=True,
+                        disabled=not confirm_delete
+                    ):
+
+                        # Xóa file video khỏi server
+                        if lesson["video_path"]:
+
+                            video_file = Path(
+                                lesson["video_path"]
+                            )
+
+                            if video_file.exists():
+
+                                try:
+
+                                    video_file.unlink()
+
+                                except Exception:
+
+                                    pass
+
+                        # Xóa các lượt xem liên quan
+                        execute(
+                            """
+                            DELETE FROM lesson_views
+                            WHERE lesson_id=?
+                            """,
+                            (lesson["id"],)
+                        )
+
+                        # Bỏ liên kết bài tập với bài giảng này
+                        execute(
+                            """
+                            UPDATE exercises
+                            SET lesson_id=NULL
+                            WHERE lesson_id=?
+                            """,
+                            (lesson["id"],)
+                        )
+
+                        # Xóa bài giảng
+                        execute(
+                            """
+                            DELETE FROM lessons
+                            WHERE id=?
+                            AND teacher_id=?
+                            """,
+                            (
+                                lesson["id"],
+                                teacher_id
+                            )
+                        )
+
+                        st.success(
+                            "Đã xóa bài giảng thành công."
+                        )
+
+                        st.rerun()
 
 
 # ============================================================
