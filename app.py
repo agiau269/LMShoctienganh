@@ -65,9 +65,9 @@ st.markdown(
     .welcome-message h1 {
         font-size: 42px;
         margin: 0;
-        color: #ff7a00;
+        color: #ff4fa3;
         text-shadow:
-            0 2px 10px rgba(255, 122, 0, 0.25);
+            0 2px 10px rgba(255, 79, 163, 0.35);
     }
 
     .welcome-message p {
