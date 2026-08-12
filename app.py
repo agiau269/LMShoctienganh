@@ -560,9 +560,7 @@ def student_progress(student_id):
     }
 
 # ============================================================
-
 # LESSON COMMENTS
-
 # ============================================================
 
 def lesson_comments(lesson_id):
@@ -576,6 +574,10 @@ def lesson_comments(lesson_id):
     st.caption(
         "Bạn có thắc mắc về bài học? Hãy để lại câu hỏi tại đây."
     )
+
+    # ========================================================
+    # TẠO BÌNH LUẬN MỚI
+    # ========================================================
 
     with st.form(
         f"comment_form_{lesson_id}",
@@ -639,6 +641,10 @@ def lesson_comments(lesson_id):
 
             st.rerun()
 
+    # ========================================================
+    # LẤY DANH SÁCH BÌNH LUẬN GỐC
+    # ========================================================
+
     comments = fetch(
         """
         SELECT
@@ -668,21 +674,22 @@ def lesson_comments(lesson_id):
         f"Có {len(comments)} bình luận."
     )
 
+    # ========================================================
+    # HIỂN THỊ TỪNG BÌNH LUẬN
+    # ========================================================
+
     for comment in comments:
 
         with st.container(border=True):
 
-            if comment["role"] == "teacher":
-
-                role_text = "Giáo viên"
-
-            else:
-
-                role_text = "Học sinh"
+            role_text = (
+                "Giáo viên"
+                if comment["role"] == "teacher"
+                else "Học sinh"
+            )
 
             st.markdown(
-                f"**{comment['full_name']}** "
-                f"— {role_text}"
+                f"**{comment['full_name']}** — {role_text}"
             )
 
             st.caption(
@@ -692,47 +699,55 @@ def lesson_comments(lesson_id):
             st.write(
                 comment["content"]
             )
-             # Kiểm tra quyền xoá bình luận
-             can_delete = False
 
-             # Người viết có thể xoá bình luận của mình
-             if current_user["id"] == comment["user_id"]:
-                 can_delete = True
+            # =================================================
+            # XOÁ BÌNH LUẬN
+            # =================================================
 
-             # Giáo viên có thể xoá bình luận trong bài giảng
-             elif current_user["role"] == "teacher":
-                 can_delete = True
+            can_delete = False
 
-             if can_delete:
+            # Người viết được xoá bình luận của chính mình
+            if current_user["id"] == comment["user_id"]:
+                can_delete = True
 
-                 if st.button(
-                     "Xoá bình luận",
-                     key=f"delete_comment_{comment['id']}"
-                 ):
+            # Giáo viên được quyền xoá
+            elif current_user["role"] == "teacher":
+                can_delete = True
 
-                     # Xoá các câu trả lời trước
-                     execute(
-                         """
-                         DELETE FROM comments
-                         WHERE parent_id=?
-                         """,
-                         (comment["id"],)
-                     )
+            if can_delete:
 
-                     # Sau đó xoá bình luận chính
-                     execute(
-                         """
-                         DELETE FROM comments
-                         WHERE id=?
-                         """,
+                if st.button(
+                    "Xoá bình luận",
+                    key=f"delete_comment_{comment['id']}"
+                ):
+
+                    # Xoá toàn bộ trả lời của bình luận này
+                    execute(
+                        """
+                        DELETE FROM comments
+                        WHERE parent_id=?
+                        """,
                         (comment["id"],)
-                      )
+                    )
 
-                      st.success(
-                          "Đã xoá bình luận."
-                      )
+                    # Xoá bình luận chính
+                    execute(
+                        """
+                        DELETE FROM comments
+                        WHERE id=?
+                        """,
+                        (comment["id"],)
+                    )
 
-                      st.rerun()
+                    st.success(
+                        "Đã xoá bình luận."
+                    )
+
+                    st.rerun()
+
+            # =================================================
+            # LẤY CÁC CÂU TRẢ LỜI
+            # =================================================
 
             replies = fetch(
                 """
@@ -757,9 +772,14 @@ def lesson_comments(lesson_id):
 
                 for reply in replies:
 
+                    reply_role = (
+                        "Giáo viên"
+                        if reply["role"] == "teacher"
+                        else "Học sinh"
+                    )
+
                     st.markdown(
-                        f"**↳ {reply['full_name']}** "
-                        f"({'Giáo viên' if reply['role'] == 'teacher' else 'Học sinh'})"
+                        f"**↳ {reply['full_name']}** — {reply_role}"
                     )
 
                     st.caption(
@@ -770,7 +790,46 @@ def lesson_comments(lesson_id):
                         reply["content"]
                     )
 
+                    # =========================================
+                    # XOÁ CÂU TRẢ LỜI
+                    # =========================================
+
+                    can_delete_reply = False
+
+                    # Người viết xoá câu trả lời của mình
+                    if current_user["id"] == reply["user_id"]:
+                        can_delete_reply = True
+
+                    # Giáo viên được quyền xoá
+                    elif current_user["role"] == "teacher":
+                        can_delete_reply = True
+
+                    if can_delete_reply:
+
+                        if st.button(
+                            "Xoá trả lời",
+                            key=f"delete_reply_{reply['id']}"
+                        ):
+
+                            execute(
+                                """
+                                DELETE FROM comments
+                                WHERE id=?
+                                """,
+                                (reply["id"],)
+                            )
+
+                            st.success(
+                                "Đã xoá câu trả lời."
+                            )
+
+                            st.rerun()
+
                     st.divider()
+
+            # =================================================
+            # FORM TRẢ LỜI BÌNH LUẬN
+            # =================================================
 
             with st.form(
                 f"reply_form_{comment['id']}",
@@ -779,13 +838,8 @@ def lesson_comments(lesson_id):
 
                 reply_content = st.text_area(
                     "Trả lời bình luận này",
-                    key=(
-                        f"reply_text_"
-                        f"{comment['id']}"
-                    ),
-                    placeholder=(
-                        "Viết câu trả lời..."
-                    ),
+                    key=f"reply_text_{comment['id']}",
+                    placeholder="Viết câu trả lời...",
                     height=100
                 )
 
@@ -835,6 +889,7 @@ def lesson_comments(lesson_id):
                     )
 
                     st.rerun()
+
 # ============================================================
 # LOGIN PAGE
 # ============================================================
