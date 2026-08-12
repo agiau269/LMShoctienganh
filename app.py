@@ -34,264 +34,149 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 # ============================================================
-# WELCOME FIREWORK EFFECT
+# WELCOME FIREWORKS
 # ============================================================
 
-st.markdown(
-    """
-    <style>
-    .firework-canvas {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        pointer-events: none;
-        z-index: 999999;
-    }
+if "show_fireworks" not in st.session_state:
+    st.session_state.show_fireworks = True
 
-    .welcome-message {
-        position: fixed;
-        top: 12%;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 1000000;
-        text-align: center;
-        font-family: Arial, sans-serif;
-        animation: welcomeFade 4s ease forwards;
-        pointer-events: none;
-    }
+if st.session_state.show_fireworks:
 
-    .welcome-message h1 {
-        font-size: 42px;
-        margin: 0;
-        color: #ff4fa3;
-        text-shadow:
-            0 2px 10px rgba(255, 79, 163, 0.35);
-    }
+    st.balloons()
 
-    .welcome-message p {
-        font-size: 18px;
-        margin-top: 10px;
-        color: #444;
-    }
+    st.markdown(
+        """
+        <div class="welcome-fireworks">
+            <div class="firework firework1"></div>
+            <div class="firework firework2"></div>
+            <div class="firework firework3"></div>
+            <div class="welcome-text">
+                Welcome to EnglishHub LMS!
+            </div>
+        </div>
 
-    @keyframes welcomeFade {
-        0% {
-            opacity: 0;
-            transform: translate(-50%, -20px);
+        <style>
+        .welcome-fireworks {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            overflow: hidden;
         }
 
-        15% {
-            opacity: 1;
-            transform: translate(-50%, 0);
+        .welcome-text {
+            position: fixed;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 38px;
+            font-weight: 800;
+            color: #ff4fa3;
+            text-align: center;
+            animation: welcomeFade 4s ease forwards;
+            text-shadow: 0 0 10px #ffb6d9;
         }
 
-        75% {
-            opacity: 1;
+        .firework {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            animation: explode 2s ease-out forwards;
         }
 
-        100% {
-            opacity: 0;
+        .firework1 {
+            top: 25%;
+            left: 25%;
+            background: #ff4fa3;
+            box-shadow:
+                0 -70px #ff4fa3,
+                50px -50px #ffd1e8,
+                70px 0 #ff4fa3,
+                50px 50px #ffd1e8,
+                0 70px #ff4fa3,
+                -50px 50px #ffd1e8,
+                -70px 0 #ff4fa3,
+                -50px -50px #ffd1e8;
         }
-    }
-    </style>
 
-    <div class="welcome-message">
-        <h1>Welcome to EnglishHub LMS!</h1>
-        <p>Let's learn, grow and achieve something great today.</p>
-    </div>
-
-    <canvas id="fireworks" class="firework-canvas"></canvas>
-
-    <script>
-    const canvas = document.getElementById("fireworks");
-    const ctx = canvas.getContext("2d");
-
-    function resizeCanvas() {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    }
-
-    resizeCanvas();
-
-    window.addEventListener(
-        "resize",
-        resizeCanvas
-    );
-
-    const particles = [];
-
-    function createFirework(x, y) {
-
-        const colors = [
-            "#ff4d4d",
-            "#ffb347",
-            "#4dabf7",
-            "#ffd43b",
-            "#69db7c",
-            "#da77f2",
-            "#ffffff"
-        ];
-
-        for (let i = 0; i < 80; i++) {
-
-            const angle =
-                Math.random() * Math.PI * 2;
-
-            const speed =
-                Math.random() * 5 + 2;
-
-            particles.push({
-                x: x,
-                y: y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed,
-                alpha: 1,
-                size: Math.random() * 3 + 1,
-                color:
-                    colors[
-                        Math.floor(
-                            Math.random()
-                            *
-                            colors.length
-                        )
-                    ]
-            });
+        .firework2 {
+            top: 30%;
+            left: 75%;
+            background: #ff7fba;
+            box-shadow:
+                0 -90px #ff7fba,
+                65px -65px #ffd1e8,
+                90px 0 #ff7fba,
+                65px 65px #ffd1e8,
+                0 90px #ff7fba,
+                -65px 65px #ffd1e8,
+                -90px 0 #ff7fba,
+                -65px -65px #ffd1e8;
+            animation-delay: 0.4s;
         }
-    }
 
-    function animate() {
+        .firework3 {
+            top: 65%;
+            left: 50%;
+            background: #ff4fa3;
+            box-shadow:
+                0 -80px #ff4fa3,
+                60px -60px #ffd1e8,
+                80px 0 #ff4fa3,
+                60px 60px #ffd1e8,
+                0 80px #ff4fa3,
+                -60px 60px #ffd1e8,
+                -80px 0 #ff4fa3,
+                -60px -60px #ffd1e8;
+            animation-delay: 0.8s;
+        }
 
-        ctx.clearRect(
-            0,
-            0,
-            canvas.width,
-            canvas.height
-        );
+        @keyframes explode {
+            0% {
+                transform: scale(0);
+                opacity: 1;
+            }
 
-        for (
-            let i = particles.length - 1;
-            i >= 0;
-            i--
-        ) {
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
 
-            const p = particles[i];
-
-            p.x += p.vx;
-            p.y += p.vy;
-
-            p.vy += 0.05;
-
-            p.alpha -= 0.015;
-
-            ctx.globalAlpha = p.alpha;
-
-            ctx.fillStyle = p.color;
-
-            ctx.beginPath();
-
-            ctx.arc(
-                p.x,
-                p.y,
-                p.size,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
-            if (p.alpha <= 0) {
-
-                particles.splice(
-                    i,
-                    1
-                );
+            100% {
+                transform: scale(1.8);
+                opacity: 0;
             }
         }
 
-        ctx.globalAlpha = 1;
-
-        requestAnimationFrame(
-            animate
-        );
-    }
-
-    animate();
-
-    setTimeout(
-        () => {
-            createFirework(
-                window.innerWidth * 0.25,
-                window.innerHeight * 0.35
-            );
-        },
-        200
-    );
-
-    setTimeout(
-        () => {
-            createFirework(
-                window.innerWidth * 0.5,
-                window.innerHeight * 0.25
-            );
-        },
-        700
-    );
-
-    setTimeout(
-        () => {
-            createFirework(
-                window.innerWidth * 0.75,
-                window.innerHeight * 0.4
-            );
-        },
-        1200
-    );
-
-    setTimeout(
-        () => {
-            createFirework(
-                window.innerWidth * 0.4,
-                window.innerHeight * 0.5
-            );
-        },
-        1700
-    );
-
-    setTimeout(
-        () => {
-            createFirework(
-                window.innerWidth * 0.65,
-                window.innerHeight * 0.3
-            );
-        },
-        2200
-    );
-
-    setTimeout(
-        () => {
-
-            canvas.remove();
-
-            const message =
-                document.querySelector(
-                    ".welcome-message"
-                );
-
-            if (message) {
-                message.remove();
+        @keyframes welcomeFade {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.7);
             }
 
-        },
-        5000
-    );
-    </script>
-    """,
-    unsafe_allow_html=True
-)
+            20% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
 
+            80% {
+                opacity: 1;
+            }
 
+            100% {
+                opacity: 0;
+            }
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    st.session_state.show_fireworks = False
 # ============================================================
 # DATABASE
 # ============================================================
