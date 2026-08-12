@@ -692,47 +692,47 @@ def lesson_comments(lesson_id):
             st.write(
                 comment["content"]
             )
-# Kiểm tra quyền xoá bình luận
-can_delete = False
+             # Kiểm tra quyền xoá bình luận
+             can_delete = False
 
-# Người viết có thể xoá bình luận của mình
-if current_user["id"] == comment["user_id"]:
-    can_delete = True
+             # Người viết có thể xoá bình luận của mình
+             if current_user["id"] == comment["user_id"]:
+                 can_delete = True
 
-# Giáo viên có thể xoá bình luận trong bài giảng
-elif current_user["role"] == "teacher":
-    can_delete = True
+             # Giáo viên có thể xoá bình luận trong bài giảng
+             elif current_user["role"] == "teacher":
+                 can_delete = True
 
-if can_delete:
+             if can_delete:
 
-    if st.button(
-        "Xoá bình luận",
-        key=f"delete_comment_{comment['id']}"
-    ):
+                 if st.button(
+                     "Xoá bình luận",
+                     key=f"delete_comment_{comment['id']}"
+                 ):
 
-        # Xoá các câu trả lời trước
-        execute(
-            """
-            DELETE FROM comments
-            WHERE parent_id=?
-            """,
-            (comment["id"],)
-        )
+                     # Xoá các câu trả lời trước
+                     execute(
+                         """
+                         DELETE FROM comments
+                         WHERE parent_id=?
+                         """,
+                         (comment["id"],)
+                     )
 
-        # Sau đó xoá bình luận chính
-        execute(
-            """
-            DELETE FROM comments
-            WHERE id=?
-            """,
-            (comment["id"],)
-        )
+                     # Sau đó xoá bình luận chính
+                     execute(
+                         """
+                         DELETE FROM comments
+                         WHERE id=?
+                         """,
+                        (comment["id"],)
+                      )
 
-        st.success(
-            "Đã xoá bình luận."
-        )
+                      st.success(
+                          "Đã xoá bình luận."
+                      )
 
-        st.rerun()
+                      st.rerun()
 
             replies = fetch(
                 """
