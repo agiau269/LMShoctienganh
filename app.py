@@ -124,6 +124,14 @@ def init_db():
         object_name TEXT,
         created_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    lesson_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    parent_id INTEGER,
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL
+    );
     """)
 
     con.commit()
@@ -551,7 +559,241 @@ def student_progress(student_id):
         )
     }
 
+# ============================================================
 
+# LESSON COMMENTS
+
+# ============================================================
+
+def lesson_comments(lesson_id):
+
+    current_user = st.session_state.user
+
+    st.divider()
+
+    st.subheader("Thảo luận & câu hỏi")
+
+    st.caption(
+        "Bạn có thắc mắc về bài học? Hãy để lại câu hỏi tại đây."
+    )
+
+    with st.form(
+        f"comment_form_{lesson_id}",
+        clear_on_submit=True
+    ):
+
+        comment_content = st.text_area(
+            "Viết bình luận",
+            placeholder=(
+                "Ví dụ: Thưa giáo viên, em chưa hiểu "
+                "phần ngữ pháp này..."
+            ),
+            height=120
+        )
+
+        submit_comment = st.form_submit_button(
+            "Gửi bình luận",
+            use_container_width=True
+        )
+
+    if submit_comment:
+
+        if not comment_content.strip():
+
+            st.error(
+                "Bình luận không được để trống."
+            )
+
+        else:
+
+            execute(
+                """
+                INSERT INTO comments
+                (
+                    lesson_id,
+                    user_id,
+                    parent_id,
+                    content,
+                    created_at
+                )
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (
+                    lesson_id,
+                    current_user["id"],
+                    None,
+                    comment_content.strip(),
+                    now()
+                )
+            )
+
+            log_activity(
+                current_user["id"],
+                "Đã bình luận bài giảng",
+                f"Bài giảng ID: {lesson_id}"
+            )
+
+            st.success(
+                "Đã gửi bình luận."
+            )
+
+            st.rerun()
+
+    comments = fetch(
+        """
+        SELECT
+            c.*,
+            u.full_name,
+            u.role
+        FROM comments c
+        JOIN users u
+        ON u.id=c.user_id
+        WHERE c.lesson_id=?
+        AND c.parent_id IS NULL
+        ORDER BY c.created_at DESC
+        """,
+        (lesson_id,)
+    )
+
+    if not comments:
+
+        st.info(
+            "Chưa có bình luận nào. "
+            "Hãy là người đầu tiên đặt câu hỏi."
+        )
+
+        return
+
+    st.write(
+        f"Có {len(comments)} bình luận."
+    )
+
+    for comment in comments:
+
+        with st.container(border=True):
+
+            if comment["role"] == "teacher":
+
+                role_text = "Giáo viên"
+
+            else:
+
+                role_text = "Học sinh"
+
+            st.markdown(
+                f"**{comment['full_name']}** "
+                f"— {role_text}"
+            )
+
+            st.caption(
+                comment["created_at"]
+            )
+
+            st.write(
+                comment["content"]
+            )
+
+            replies = fetch(
+                """
+                SELECT
+                    c.*,
+                    u.full_name,
+                    u.role
+                FROM comments c
+                JOIN users u
+                ON u.id=c.user_id
+                WHERE c.parent_id=?
+                ORDER BY c.created_at ASC
+                """,
+                (comment["id"],)
+            )
+
+            if replies:
+
+                st.markdown(
+                    "**Phản hồi:**"
+                )
+
+                for reply in replies:
+
+                    st.markdown(
+                        f"**↳ {reply['full_name']}** "
+                        f"({'Giáo viên' if reply['role'] == 'teacher' else 'Học sinh'})"
+                    )
+
+                    st.caption(
+                        reply["created_at"]
+                    )
+
+                    st.write(
+                        reply["content"]
+                    )
+
+                    st.divider()
+
+            with st.form(
+                f"reply_form_{comment['id']}",
+                clear_on_submit=True
+            ):
+
+                reply_content = st.text_area(
+                    "Trả lời bình luận này",
+                    key=(
+                        f"reply_text_"
+                        f"{comment['id']}"
+                    ),
+                    placeholder=(
+                        "Viết câu trả lời..."
+                    ),
+                    height=100
+                )
+
+                submit_reply = st.form_submit_button(
+                    "Trả lời"
+                )
+
+            if submit_reply:
+
+                if not reply_content.strip():
+
+                    st.error(
+                        "Nội dung trả lời không được để trống."
+                    )
+
+                else:
+
+                    execute(
+                        """
+                        INSERT INTO comments
+                        (
+                            lesson_id,
+                            user_id,
+                            parent_id,
+                            content,
+                            created_at
+                        )
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
+                        (
+                            lesson_id,
+                            current_user["id"],
+                            comment["id"],
+                            reply_content.strip(),
+                            now()
+                        )
+                    )
+
+                    log_activity(
+                        current_user["id"],
+                        "Đã trả lời bình luận",
+                        f"Bài giảng ID: {lesson_id}"
+                    )
+
+                    st.success(
+                        "Đã gửi trả lời."
+                    )
+
+                    st.rerun()
 # ============================================================
 # LOGIN PAGE
 # ============================================================
@@ -2666,6 +2908,9 @@ def open_student_lesson(
             "Mở tài liệu học tập",
             lesson["resource_url"]
         )
+    lesson_comments(
+        lesson["id"]
+    )
 
     st.divider()
 
