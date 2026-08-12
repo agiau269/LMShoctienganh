@@ -33,6 +33,263 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+# ============================================================
+# WELCOME FIREWORK EFFECT
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+    .firework-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 999999;
+    }
+
+    .welcome-message {
+        position: fixed;
+        top: 12%;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000000;
+        text-align: center;
+        font-family: Arial, sans-serif;
+        animation: welcomeFade 4s ease forwards;
+        pointer-events: none;
+    }
+
+    .welcome-message h1 {
+        font-size: 42px;
+        margin: 0;
+        color: #ff7a00;
+        text-shadow:
+            0 2px 10px rgba(255, 122, 0, 0.25);
+    }
+
+    .welcome-message p {
+        font-size: 18px;
+        margin-top: 10px;
+        color: #444;
+    }
+
+    @keyframes welcomeFade {
+        0% {
+            opacity: 0;
+            transform: translate(-50%, -20px);
+        }
+
+        15% {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        75% {
+            opacity: 1;
+        }
+
+        100% {
+            opacity: 0;
+        }
+    }
+    </style>
+
+    <div class="welcome-message">
+        <h1>Welcome to EnglishHub LMS!</h1>
+        <p>Let's learn, grow and achieve something great today.</p>
+    </div>
+
+    <canvas id="fireworks" class="firework-canvas"></canvas>
+
+    <script>
+    const canvas = document.getElementById("fireworks");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    resizeCanvas();
+
+    window.addEventListener(
+        "resize",
+        resizeCanvas
+    );
+
+    const particles = [];
+
+    function createFirework(x, y) {
+
+        const colors = [
+            "#ff4d4d",
+            "#ffb347",
+            "#4dabf7",
+            "#ffd43b",
+            "#69db7c",
+            "#da77f2",
+            "#ffffff"
+        ];
+
+        for (let i = 0; i < 80; i++) {
+
+            const angle =
+                Math.random() * Math.PI * 2;
+
+            const speed =
+                Math.random() * 5 + 2;
+
+            particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                alpha: 1,
+                size: Math.random() * 3 + 1,
+                color:
+                    colors[
+                        Math.floor(
+                            Math.random()
+                            *
+                            colors.length
+                        )
+                    ]
+            });
+        }
+    }
+
+    function animate() {
+
+        ctx.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+        for (
+            let i = particles.length - 1;
+            i >= 0;
+            i--
+        ) {
+
+            const p = particles[i];
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            p.vy += 0.05;
+
+            p.alpha -= 0.015;
+
+            ctx.globalAlpha = p.alpha;
+
+            ctx.fillStyle = p.color;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                p.size,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            if (p.alpha <= 0) {
+
+                particles.splice(
+                    i,
+                    1
+                );
+            }
+        }
+
+        ctx.globalAlpha = 1;
+
+        requestAnimationFrame(
+            animate
+        );
+    }
+
+    animate();
+
+    setTimeout(
+        () => {
+            createFirework(
+                window.innerWidth * 0.25,
+                window.innerHeight * 0.35
+            );
+        },
+        200
+    );
+
+    setTimeout(
+        () => {
+            createFirework(
+                window.innerWidth * 0.5,
+                window.innerHeight * 0.25
+            );
+        },
+        700
+    );
+
+    setTimeout(
+        () => {
+            createFirework(
+                window.innerWidth * 0.75,
+                window.innerHeight * 0.4
+            );
+        },
+        1200
+    );
+
+    setTimeout(
+        () => {
+            createFirework(
+                window.innerWidth * 0.4,
+                window.innerHeight * 0.5
+            );
+        },
+        1700
+    );
+
+    setTimeout(
+        () => {
+            createFirework(
+                window.innerWidth * 0.65,
+                window.innerHeight * 0.3
+            );
+        },
+        2200
+    );
+
+    setTimeout(
+        () => {
+
+            canvas.remove();
+
+            const message =
+                document.querySelector(
+                    ".welcome-message"
+                );
+
+            if (message) {
+                message.remove();
+            }
+
+        },
+        5000
+    );
+    </script>
+    """,
+    unsafe_allow_html=True
+)
 
 
 # ============================================================
