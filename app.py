@@ -1404,6 +1404,13 @@ def teacher_lessons():
                         "Mở tài liệu bên ngoài",
                         lesson["resource_url"]
                     )
+            with st.expander(
+                 "Xem thảo luận & trả lời học sinh"
+            ):
+
+                 lesson_comments(
+                     lesson["id"]
+                 )       
 
             st.divider()
 
